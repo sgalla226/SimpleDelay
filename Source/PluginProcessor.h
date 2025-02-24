@@ -59,6 +59,15 @@ public:
 private:
 
     juce::AudioProcessorValueTreeState treeState;
+    juce::dsp::DelayLine<float> mDelayLine{ 22050 };
+
+    float mDelayTime = 1000.0f;
+    float mFeedback = 0.3f;
+
+    //  Wet and Dry Mix parameters
+
+    float mWetMix = 0.5f;
+    float mDryMix = 0.5f;
 
 
     //==============================================================================

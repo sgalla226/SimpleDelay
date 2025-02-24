@@ -39,5 +39,16 @@ private:
     std::unique_ptr <juce::AudioProcessorValueTreeState::SliderAttachment> delayTimeValue;
     std::unique_ptr <juce::AudioProcessorValueTreeState::SliderAttachment> feedbackValue;
 
+    //Wet mix stuff
+    juce::Slider wetMixSlider;
+    juce::Label wetMixLabel;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> wetMixValue;
+
+    // Dry Mix stuff
+    juce::Slider dryMixSlider;
+    juce::Label dryMixLabel;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> dryMixValue;
+
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleDelayAudioProcessorEditor)
 };

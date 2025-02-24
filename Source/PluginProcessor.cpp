@@ -12,21 +12,26 @@
 //==============================================================================
 SimpleDelayAudioProcessor::SimpleDelayAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       ), treeState(*this, nullptr, juce::Identifier("PARAMETERS"),
-                           { std::make_unique<juce::AudioParameterFloat>("delayTime", "Delay (samples)", 10.f, 5000.f, 1000.f),
-                             std::make_unique<juce::AudioParameterFloat>("feedback", "Feedback", 0.f, 0.99f, 0.3f) })
+    : AudioProcessor(BusesProperties()
+#if ! JucePlugin_IsMidiEffect
+#if ! JucePlugin_IsSynth
+        .withInput("Input", juce::AudioChannelSet::stereo(), true)
+#endif
+        .withOutput("Output", juce::AudioChannelSet::stereo(), true)
+#endif
+    ), treeState(*this, nullptr, juce::Identifier("PARAMETERS"),
+        { std::make_unique<juce::AudioParameterFloat>("delayTime", "Delay (samples)", 10.f, 5000.f, 1000.f),
+          std::make_unique<juce::AudioParameterFloat>("feedback", "Feedback", 0.f, 0.99f, 0.3f),
+          std::make_unique<juce::AudioParameterFloat>("wetMix", "Wet Mix", 0.f, 1.0f, 0.5f),          // New wet mix parameter
+          std::make_unique<juce::AudioParameterFloat>("dryMix", "Dry Mix", 0.f, 1.0f, 0.5f) })        // New dry mix parameter
 #endif
 {
     treeState.addParameterListener("delayTime", this);
     treeState.addParameterListener("feedback", this);
+    treeState.addParameterListener("wetMix", this);     //listener for wet mix
+    treeState.addParameterListener("dryMix", this);
 }
+
 
 SimpleDelayAudioProcessor::~SimpleDelayAudioProcessor()
 {
@@ -97,8 +102,14 @@ void SimpleDelayAudioProcessor::changeProgramName (int index, const juce::String
 //==============================================================================
 void SimpleDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+    juce::dsp::ProcessSpec spec;
 
+    spec.sampleRate = sampleRate;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = getTotalNumInputChannels();
 
+    mDelayLine.reset();
+    mDelayLine.prepare(spec);
 }
 
 void SimpleDelayAudioProcessor::releaseResources()
@@ -159,6 +170,14 @@ void SimpleDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
 
         // do something to the data...
 
+        for (int i = 0; i < buffer.getNumSamples(); i++)
+        {
+            float in = channelData[i]; // 1 dry
+            float temp = mDelayLine.popSample(channel, mDelayTime);      // 2 Wet
+            mDelayLine.pushSample(channel, in + (temp * mFeedback));     // 3 Feedback
+            channelData[i] = (in + mDryMix)+(temp*mWetMix);             // 4 Wet/Dry Mix
+        }
+
     }
 }
 
@@ -197,7 +216,20 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 // Function called when parameter is changed
 void SimpleDelayAudioProcessor::parameterChanged(const juce::String& parameterID, float newValue)
 {
-
-
-
+    if (parameterID == "delayTime")
+    {
+        mDelayTime == newValue;
+    }
+    else if (parameterID =="feedback")
+    {
+        mFeedback = newValue;
+    }
+    else if (parameterID == "wetMix")
+    {
+        mWetMix = newValue;
+    }
+    else if (parameterID == "dryMix")
+    {
+        mDryMix = newValue;
+    }
 }

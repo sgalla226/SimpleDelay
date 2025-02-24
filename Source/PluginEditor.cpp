@@ -38,7 +38,31 @@ SimpleDelayAudioProcessorEditor::SimpleDelayAudioProcessorEditor (SimpleDelayAud
     addAndMakeVisible(feedbackLabel);
     feedbackLabel.setText("Feedback", juce::dontSendNotification);
     feedbackLabel.attachToComponent(&feedbackSlider, false);
+
+    // Wet Mixing
+
+    wetMixValue = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(treeState, "wetMix", wetMixSlider);
+    wetMixSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    wetMixSlider.setRange(0.0f, 1.0f, 0.01f);
+    wetMixSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::TextBoxRight, true, 75, 25);
+    addAndMakeVisible(&wetMixSlider);
+
+    addAndMakeVisible(wetMixLabel);
+    wetMixLabel.setText("Wet Mix", juce::dontSendNotification);
+    wetMixLabel.attachToComponent(&wetMixSlider, false);
+
+    // Dry Mixing 
+    dryMixValue = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(treeState, "dryMix", dryMixSlider);
+    dryMixSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    dryMixSlider.setRange(0.0f, 1.0f, 0.01f);
+    dryMixSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::TextBoxRight, true, 75, 25);
+    addAndMakeVisible(&dryMixSlider);
+
+    addAndMakeVisible(dryMixLabel);
+    dryMixLabel.setText("Dry Mix", juce::dontSendNotification);
+    dryMixLabel.attachToComponent(&dryMixSlider, false);
 }
+
 
 SimpleDelayAudioProcessorEditor::~SimpleDelayAudioProcessorEditor()
 {
@@ -51,12 +75,20 @@ void SimpleDelayAudioProcessorEditor::paint (juce::Graphics& g)
     g.fillAll(juce::Colours::grey);
     g.setColour(juce::Colours::white);
     g.setFont(20);
-    g.drawFittedText("Simple Delay", 150, 20, 130, 30, juce::Justification::centred, 1, 0.0f);
+    g.drawFittedText("Simple Delay", 150, 5, 130, 30, juce::Justification::centred, 1, 0.0f);
 }
 
 void SimpleDelayAudioProcessorEditor::resized()
 {
-    delayTimeSlider.setBounds(50, 110, 320, 50);
-    feedbackSlider.setBounds(50, 180, 320, 50);
+    delayTimeSlider.setBounds(50, 50, 320, 50);
+    feedbackSlider.setBounds(50, 110, 320, 50);
+
+    //Wet Mix Slider
+
+    wetMixSlider.setBounds(50, 170, 320, 50);
+
+    //Dry Mix slider
+
+    dryMixSlider.setBounds(50, 230, 320, 50);
 }
  
